@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    {% load static %}
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #chatbox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 700px;
+            overflow-y: auto; /* Changed from scroll to auto */
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Chat with the Bot</h1>
+    <div id="chatbox" class="mb-3">
+        <div id="messages"></div>
+    </div>
+    <form id="chat-form" method="post" class="form-inline mb-3">
+        {% csrf_token %}
+        <!--        <input type="text" name="message" id="message" class="form-control mr-2" placeholder="Type your message..."-->
+        <!--               required>-->
+        <textarea name="message" id="message" class="form-control mr-4" rows="2" cols="105"
+                  placeholder="Type your message..." required></textarea>
+
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+
+    <button id="clear-chat" class="btn btn-danger">Clear Chat</button>
+    <button id="restart-session" class="btn btn-warning">Restart Session</button> <!-- New Restart Session Button -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+
+    const chatbox = document.getElementById('chatbox');
+    const messagesDiv = document.getElementById('messages');
+
+    // Function to update chatbox
+    function updateChatbox(content) {
+        messagesDiv.innerHTML += content;
+        chatbox.style.display = 'block';
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    document.getElementById('chat-form').onsubmit = function(event) {
+        event.preventDefault();
+        const message = document.getElementById('message').value;
+
+        fetch('http://localhost:5005/webhooks/rest/webhook', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sender: 'user',
+                message: message
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const botResponse = data.map(item => item.text).join('<br>');
+            updateChatbox(`<div class="alert alert-secondary">You: ${message}</div>`);
+            updateChatbox(`<div class="alert alert-info">${botResponse}</div>`);
+        });
+
+        document.getElementById('message').value = '';
+    };
+
+    // Function to reset chat
+    function resetChat(isRestart = false) {
+        messagesDiv.innerHTML = '';
+        chatbox.style.display = 'none';
+        if (isRestart) {
+            userRole = null;
+        }
+    }
+
+    document.getElementById('clear-chat').onclick = function() {
+        resetChat();
+    };
+
+    document.getElementById('restart-session').onclick = function() {
+        resetChat(true);
+    };
+
+
+</script>
+</body>
+</html>
