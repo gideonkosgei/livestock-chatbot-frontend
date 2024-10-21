@@ -70,8 +70,9 @@
         .then(response => response.json())
         .then(data => {
             const botResponse = data.map(item => item.text).join('<br>');
-            updateChatbox(`<div class="alert alert-secondary">You: ${message}</div>`);
-            updateChatbox(`<div class="alert alert-info">${botResponse}</div>`);
+            updateChatbox(`<div class="alert alert-info">You: ${message}</div>`);
+            updateChatbox(`<div class="alert alert-secondary">${botResponse}</div>`);
+
         });
 
         document.getElementById('message').value = '';
